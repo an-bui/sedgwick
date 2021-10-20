@@ -1,0 +1,38 @@
+---
+title: "Sedgwick coverboard map"
+author: "An Bui"
+date: "10/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(here::here("code/spatial", "01_set-up_spatial.R"))
+```
+
+# 1. Map using `mapview`
+```{r}
+mapView(points_all, 
+        zcol = "point_type", 
+        col.regions = c("blue", "red"))
+```
+
+# 2. Map using `leaflet`
+```{r}
+# palette for point colors
+pal <- colorFactor(c("yellow", "blue"), domain = c("flag", "board"), ordered = TRUE)
+
+leaflet() %>% 
+  # base map
+  addTiles() %>% 
+  # polygon: Sedgwick boundary
+  addPolygons(data = sedg_boundary) %>% 
+  # markers: points
+  addCircleMarkers(data = points_all,
+                   color = ~pal(point_type),
+                   popup = ~notes)
+```
+
