@@ -11,12 +11,13 @@ library(googlesheets4) # getting metadata from google sheets
 library(janitor) # cleaning variable names
 
 # 2. data -----------------------------------------------------------------
-
-metadata <- googledrive::drive_get("Sedgwick Coverboard Data")
   
 sheet_id <- "1rT76k5CKds8XSDIFnwukckh-y-3hO3dpaeTBuhNodVc"
 
-metadata <- read_sheet(sheet_id)
+metadata <- read_sheet(sheet_id, na = "N/A") %>% 
+  select(-Canopy)
+
+# write_csv(metadata, here::here("sedgwick-coverboard-map", "metadata.csv"))
   
 # layers
 firebreaks <- st_read(here::here("data/spatial/firebreaksd_rds_unimproved"), layer = "FireBreakRoadsUnimproved") %>% 
@@ -57,3 +58,4 @@ points_all <- rbind(points_burn, points_control) %>%
   ),
   point_type = fct_relevel(point_type, c("flag", "board")))
 
+write_csv(points_all, here::here("sedgwick-coverboard-map", "map.csv"))

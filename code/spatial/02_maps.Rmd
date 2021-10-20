@@ -27,12 +27,13 @@ pal <- colorFactor(c("yellow", "blue"), domain = c("flag", "board"), ordered = T
 
 leaflet() %>% 
   # base map
-  addTiles() %>% 
-  # polygon: Sedgwick boundary
-  addPolygons(data = sedg_boundary) %>% 
+  addProviderTiles(providers$Esri.WorldImagery) %>%
   # markers: points
   addCircleMarkers(data = points_all,
                    color = ~pal(point_type),
-                   popup = ~notes)
+                   popup = paste("Board ID:", points_all$board_id, "<br>",
+                                 "Treatment:", points_all$treatment, "<br>",
+                                 "Habitat:", points_all$habitat, "<br>",
+                                 "Notes:", points_all$notes, "<br>"))
 ```
 
