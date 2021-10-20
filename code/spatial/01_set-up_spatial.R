@@ -29,7 +29,8 @@ maintained_roads <- st_read(here::here("data/spatial/maintained_roads"), layer =
 sedg_boundary <- st_read(here::here("data/spatial/sedg_boundary"), layer = "sedgwick_boundary_adj") %>% 
   st_transform(., crs = 4269)
 
-firebreaks_swcorner <- st_read(here::here("data/spatial/swcorner_firebreaks_rds"), layer = "SWcorner_FireBreaksRoads")
+firebreaks_swcorner <- st_read(here::here("data/spatial/swcorner_firebreaks_rds"), layer = "SWcorner_FireBreaksRoads") %>% 
+  st_transform(., crs = 4269)
 
 # GPS points
 
@@ -46,16 +47,25 @@ points_all <- rbind(points_burn, points_control) %>%
   # rename cmt column to board_tag
   rename(board_id = cmt) %>% 
   # separate board_id into components to code in meanings for things
-  separate(board_id, into = c("treatment_code", "habitat_code", "number"), sep = 1:3, remove = FALSE) %>% 
+  separate(board_id, into = c("code", "number"), sep = "(?<=[A-Za-z])(?=[0-9])", remove = FALSE) %>% 
+  separate(code, into = c("treatment_code", "habitat_code"), sep = 1:2, remove = FALSE) %>% 
   # join by board ID column with metadata
   full_join(., metadata, by = c("board_id" = "Board ID")) %>% 
   # adds underscore and lower case
   clean_names() %>% 
-  # create column for flag or board coordinates
-  mutate(point_type = case_when(
-    habitat_code == "F" ~ "flag",
-    habitat_code %in% c("G", "W", "C", "X") ~ "board"
-  ),
-  point_type = fct_relevel(point_type, c("flag", "board")))
-
-write_csv(points_all, here::here("sedgwick-coverboard-map", "map.csv"))
+  # create a few new columns
+  mutate(
+    # new column for point type: either flag or board
+    point_type = case_when(
+      habitat_code == "F" ~ "flag",
+      habitat_code %in% c("G", "W", "C", "X") ~ "board"),
+    # new column for the text in the marker pop up
+    marker_text = case_when(
+      point_type == "flag" ~ paste("Flag:", number, "<br>"),
+      point_type == "board" ~ paste("Board ID:", board_id, "<br>",
+                                    "Treatment:", treatment, "<br>",
+                                    "Habitat:", habitat, "<br>",
+                                    "Topography:", topography, "<br>", 
+                                    "Heading/distance from nearest flag:", direction_distance, "<br>",
+                                    "Notes:", notes, "<br>")
+    ))

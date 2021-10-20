@@ -27,17 +27,29 @@ points_all_app <- rbind(points_burn, points_control) %>%
     # rename cmt column to board_tag
     rename(board_id = cmt) %>% 
     # separate board_id into components to code in meanings for things
-    separate(board_id, into = c("treatment_code", "habitat_code", "number"), sep = 1:3, remove = FALSE) %>% 
+    separate(board_id, into = c("code", "number"), sep = "(?<=[A-Za-z])(?=[0-9])", remove = FALSE) %>% 
+    separate(code, into = c("treatment_code", "habitat_code"), sep = 1:2, remove = FALSE) %>% 
     # join by board ID column with metadata
     full_join(., metadata, by = c("board_id" = "Board ID")) %>% 
     # adds underscore and lower case
     clean_names() %>% 
-    # create column for flag or board coordinates
-    mutate(point_type = case_when(
-        habitat_code == "F" ~ "flag",
-        habitat_code %in% c("G", "W", "C", "X") ~ "board"
-    ),
-    point_type = fct_relevel(point_type, c("flag", "board")))
+    # create a few new columns
+    mutate(
+        # new column for point type: either flag or board
+        point_type = case_when(
+            habitat_code == "F" ~ "flag",
+            habitat_code %in% c("G", "W", "C", "X") ~ "board"),
+        # new column for the text in the marker pop up
+        marker_text = case_when(
+            point_type == "flag" ~ paste("Flag:", number, "<br>"),
+            point_type == "board" ~ paste("Board ID:", board_id, "<br>",
+                                          "Treatment:", treatment, "<br>",
+                                          "Habitat:", habitat, "<br>",
+                                          "Topography:", topography, "<br>", 
+                                          "Heading/distance from nearest flag:", direction_distance, "<br>",
+                                          "Notes:", notes, "<br>")
+        ))
+
 
 # palette for point colors
 pal <- colorFactor(c("yellow", "blue"), domain = c("flag", "board"), ordered = TRUE)
@@ -61,10 +73,7 @@ server <- function(input, output) {
             # markers: points
             addCircleMarkers(data = points_all_app,
                              color = ~pal(point_type),
-                             popup = paste("Board ID:", points_all_app$board_id, "<br>",
-                                           "Treatment:", points_all_app$treatment, "<br>",
-                                           "Habitat:", points_all_app$habitat, "<br>",
-                                           "Notes:", points_all_app$notes, "<br>"))
+                             popup = ~marker_text)
     })
 }
 

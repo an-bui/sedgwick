@@ -31,9 +31,6 @@ leaflet() %>%
   # markers: points
   addCircleMarkers(data = points_all,
                    color = ~pal(point_type),
-                   popup = paste("Board ID:", points_all$board_id, "<br>",
-                                 "Treatment:", points_all$treatment, "<br>",
-                                 "Habitat:", points_all$habitat, "<br>",
-                                 "Notes:", points_all$notes, "<br>"))
+                   popup = ~marker_text)
 ```
 

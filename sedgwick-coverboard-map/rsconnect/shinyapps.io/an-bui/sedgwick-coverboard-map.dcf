@@ -5,8 +5,8 @@ account: an-bui
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4912331
-bundleId: 5156686
+bundleId: 5156738
 url: https://an-bui.shinyapps.io/sedgwick-coverboard-map/
-when: 1634701790.85039
+when: 1634703968.4183
 asMultiple: FALSE
 asStatic: FALSE
